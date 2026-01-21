@@ -1,0 +1,47 @@
+name: "yolo_ensemble"
+platform: "ensemble"
+max_batch_size: 8
+
+input [
+  {
+    name: "images"
+    data_type: TYPE_FP32
+    dims: [3, 640, 640]
+  }
+]
+
+output [
+  {
+    name: "det_output"
+    data_type: TYPE_FP32
+    dims: [84, 8400]
+  },
+  {
+    name: "seg_output"
+    data_type: TYPE_FP32
+    dims: [116, 8400]
+  },
+  {
+    name: "proto_output"  # НОВЫЙ ВЫХОД
+    data_type: TYPE_FP32
+    dims: [32, 160, 160]
+  }
+]
+
+ensemble_scheduling {
+  step [
+    {
+      model_name: "yolo_det"
+      model_version: -1
+      input_map { key: "images" value: "images" }
+      output_map { key: "output0" value: "det_output" }
+    },
+    {
+      model_name: "yolo_seg"
+      model_version: -1
+      input_map { key: "images" value: "images" }
+      output_map { key: "output0" value: "seg_output" }
+      output_map { key: "output1" value: "proto_output" } # ПРОБРАСЫВАЕМ ПРОТОТИПЫ
+    }
+  ]
+}

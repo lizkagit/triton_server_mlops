@@ -1,0 +1,4 @@
+*.pt
+yolo*.pt
+yolov*.pt
+.env

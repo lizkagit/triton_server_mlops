@@ -1,0 +1,59 @@
+services:
+
+  triton:
+    image: nvcr.io/nvidia/tritonserver:24.01-py3
+    container_name: triton-server
+    volumes:
+      - ./triton_model_repo:/models
+    command:
+      - tritonserver
+      - --model-repository=/models
+      - --backend-config=python,shm-default-byte-size=16777216
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+      - "8002:8002"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/v2/health/ready"]
+      interval: 5s
+      timeout: 2s
+      retries: 20
+      start_period: 10s
+    networks:
+      - mlops-network
+    restart: unless-stopped
+
+
+  fastapi:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: fastapi-service
+    depends_on:
+      triton:
+        condition: service_healthy
+    environment:
+      - TRITON_URL=triton:8001
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./app:/app
+    networks:
+      - mlops-network
+    restart: unless-stopped
+
+
+  perf-client:
+    image: nvcr.io/nvidia/tritonserver:24.01-py3-sdk
+    container_name: triton-perf-client
+    depends_on:
+      triton:
+        condition: service_healthy
+    # Просто держим контейнер запущенным
+    command: sleep infinity
+    networks:
+      - mlops-network
+
+networks:
+  mlops-network:
+    driver: bridge
