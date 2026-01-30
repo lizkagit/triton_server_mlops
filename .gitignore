@@ -1,4 +1,4 @@
 *.pt
 yolo*.pt
 yolov*.pt
-.env
+.env.

@@ -27,7 +27,7 @@ async def infer_single(image: UploadFile = File(...)):
         processed_img = preprocess_image(contents)
         batch_input = processed_img[np.newaxis, ...]
         
-        # Используем унифицированный метод сервиса
+        
         raw_results = triton_service.run_inference(MODEL_NAME, batch_input, ["output0"])
         detections = postprocess_yolo(raw_results["output0"])[0]
         
@@ -82,12 +82,7 @@ async def infer_batch(images: List[UploadFile] = File(...)):
 
 @app.post("/infer_ensemble")
 async def infer_ensemble(image: UploadFile = File(...)):
-    """
-    Вызов ансамблевой модели:
-    1. Получаем результаты детекции (yolo_det)
-    2. Получаем результаты сегментации (yolo_seg)
-    3. Обрабатываем оба выхода независимо
-    """
+  
     start_time = time.time()
     try:
  
